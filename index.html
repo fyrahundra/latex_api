@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LaTeX Compiler</title>
+</head>
+<body>
+    <h1>Upload ZIP 2</h1>
+    <input type="file" id="file">
+    <button onclick="upload()">Compile</button>
+    <p id="status"></p>
+
+    <script>
+        async function upload() {
+            const file = document.getElementById("file").files[0];
+            console.log(file, file.type);
+            if (!file || file.type !== "application/zip") {
+                alert("Select a ZIP file");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            document.getElementById("status").innerText = "Compiling...";
+
+            const res = await fetch("/compile", {
+                method: "POST",
+                body: formData
+            });
+
+            if (!res.ok) {
+                document.getElementById("status").innerText = "Error: " + res.statusText;
+                return;
+            }
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "output.pdf";
+            a.click();
+
+            document.getElementById("status").innerText = "Done!";
+        }
+    </script>
+</body>
+</html>
