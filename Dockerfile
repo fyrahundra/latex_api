@@ -19,7 +19,7 @@ RUN apt-get update && \
         texlive-latex-extra \
         texlive-xetex \
         \
-        # --- Fonts (fixes tgpagella + other fonts) ---
+        # --- Fonts ---
         texlive-fonts-recommended \
         texlive-fonts-extra \
         texlive-fonts-extra-links \
@@ -43,6 +43,7 @@ RUN apt-get update && \
         libpng16-16 \
         libjpeg62-turbo \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+    
 # ---- Create non-root user ----
 RUN useradd -m appuser && \
     mkdir -p /app && \
