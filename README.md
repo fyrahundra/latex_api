@@ -1,0 +1,1 @@
+[![Svenska](https://img.shields.io/badge/Svenska-yellow)](README.sv.md)
