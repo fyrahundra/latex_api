@@ -18,7 +18,7 @@ def pick_tex_file(work_dir: str):
     if not tex_candidates:
         return None, []
 
-    preferred_names = {"main.tex", "garb.tex"}
+    preferred_names = {"garb.tex"}
     tex_candidates.sort(
         key=lambda p: (
             os.path.basename(p) not in preferred_names,

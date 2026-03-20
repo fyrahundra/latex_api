@@ -24,7 +24,7 @@ This is an api running with a static frontend with a docker sandbox. The purpose
 1. Clone the repository and move into the project folder:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/fyrahundra/latex_api.git
 cd latex_api
 ```
 
@@ -63,3 +63,54 @@ make stop
 ```bash
 make terminate
 ```
+
+## Usage
+
+### Web frontend
+
+1. Start the container:
+
+```bash
+make run
+```
+
+2. Open:
+
+```text
+http://localhost:8080
+```
+
+3. Upload a `.zip` containing your LaTeX project and compile.
+
+### API endpoint
+
+The API exposes a compile endpoint:
+
+- `POST /compile`
+
+Example request with `curl`:
+
+```bash
+curl -X POST \
+	-F "file=@/path/to/project.zip" \
+	http://localhost:8080/compile \
+	--output output.pdf
+```
+
+If compilation succeeds, the response body is a PDF file.
+
+### Notes for ZIP input
+
+- The ZIP must contain at least one `.tex` file.
+- The service prefers `garb.tex` if present.
+- Max upload size is 5 MB.
+
+## Features
+
+- Dockerized runtime with LaTeX toolchain included.
+- Static frontend served at `/` for upload and compile flow.
+- API-based compilation via `POST /compile`.
+- Automatic `.tex` file discovery in uploaded projects.
+- Optional font package fallback patching for `.sty` files (for environments missing `tgpagella`).
+- Uses `latexmk` for robust multi-pass LaTeX builds.
+- Returns compilation output directly as a PDF response.

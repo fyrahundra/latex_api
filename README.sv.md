@@ -1,144 +1,116 @@
-# Projektnamn
+# Latex API
 
-Kort beskrivning i en mening av vad projektet gör.
+## Beskrivning
+
+Detta är ett API som körs tillsammans med ett statiskt frontend i en Docker-sandbox. Syftet med projektet är att erbjuda ett alternativ till tjänster som Overleaf för LaTeX-kompilering. Projektet är också kopplat till detta [CLI](https://github.com/fyrahundra/latex_cli).
 
 ## Innehåll
 
-- [Översikt](#översikt)
-- [Funktioner](#funktioner)
-- [Krav](#krav)
 - [Installation](#installation)
-- [Konfiguration](#konfiguration)
 - [Användning](#användning)
-- [API](#api)
-- [Docker](#docker)
-- [Projektstruktur](#projektstruktur)
-- [Utveckling](#utveckling)
-- [Felsökning](#felsökning)
-- [Bidra](#bidra)
-- [Licens](#licens)
-
-## Översikt
-
-Beskriv vilket problem projektet löser och vem som har nytta av det.
-
-## Funktioner
-
-- Funktion 1
-- Funktion 2
-- Funktion 3
-
-## Krav
-
-- Python x.y+
-- pip
-- (Valfritt) Docker
+- [Funktioner](#funktioner)
 
 ## Installation
 
+### Förkrav
+
+- Linux, macOS eller Windows med WSL2
+- [Docker](https://docs.docker.com/get-docker/) installerat och igång
+- `make` tillgängligt i terminalen
+- En ledig lokal port `8080`
+
+### Steg-för-steg
+
+1. Klona repot och gå till projektmappen:
+
 ```bash
-git clone <repository-url>
-cd <project-folder>
-pip install -r requirements.txt
+git clone https://github.com/fyrahundra/latex_api.git
+cd latex_api
 ```
 
-## Konfiguration
+2. Bygg Docker-imagen (utan cache):
 
-Dokumentera miljövariabler och inställningar här.
+```bash
+make build
+```
 
-Exempel:
+Valfritt: snabbare build med Docker-cache:
 
-```env
-PORT=5000
-DEBUG=false
+```bash
+make build-cached
+```
+
+3. Kör API-containern:
+
+```bash
+make run
+```
+
+4. Öppna appen i webbläsaren (eller använd CLI):
+
+```text
+http://localhost:8080
+```
+
+5. Stoppa den körande containern när du är klar (ofta inte nödvändigt):
+
+```bash
+make stop
+```
+
+6. Ta bort containern helt (valfri städning):
+
+```bash
+make terminate
 ```
 
 ## Användning
 
-Kör lokalt:
+### Webbfrontend
+
+1. Starta containern:
 
 ```bash
-python app.py
+make run
 ```
 
-Öppna i webbläsaren:
+2. Öppna:
 
 ```text
-http://localhost:5000
+http://localhost:8080
 ```
 
-## API
+3. Ladda upp en `.zip` som innehåller ditt LaTeX-projekt och kompilera.
 
-Lista viktiga endpoints här.
+### API-endpoint
 
-Exempel:
+API:t exponerar en endpoint för kompilering:
 
-- `GET /` - Hälsokontroll eller startsida
-- `POST /render` - Rendera indata till utdata
+- `POST /compile`
 
-Exempel på request:
-
-```json
-{
-	"input": "example"
-}
-```
-
-Exempel på response:
-
-```json
-{
-	"result": "example"
-}
-```
-
-## Docker
-
-Bygg image:
+Exempel på request med `curl`:
 
 ```bash
-docker build -t <image-name> .
+curl -X POST \
+	-F "file=@/path/to/project.zip" \
+	http://localhost:8080/compile \
+	--output output.pdf
 ```
 
-Kör container:
+Om kompileringen lyckas returneras en PDF-fil.
 
-```bash
-docker run -p 5000:5000 <image-name>
-```
+### Noteringar för ZIP-indata
 
-## Projektstruktur
+- ZIP-filen måste innehalla minst en `.tex`-fil.
+- Tjänsten prioriterar `garb.tex` om den finns.
+- Max uppladdningsstorlek är 5 MB.
 
-```text
-.
-|- app.py
-|- Dockerfile
-|- requirements.txt
-|- index.html
-|- README.md
-|- README.en.md
-`- README.sv.md
-```
+## Funktioner
 
-## Utveckling
-
-Rekommenderat arbetsflöde:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-## Felsökning
-
-- Problem: <beskriv fel>
-- Orsak: <möjlig orsak>
-- Lösning: <hur du fixar det>
-
-## Bidra
-
-Bidrag är välkomna. Öppna ett issue eller skicka en pull request.
-
-## Licens
-
-Ange projektets licens här (till exempel MIT).
+- Docker-baserad körtid med LaTeX-verktygskedja inkluderad.
+- Statiskt frontend som serveras på `/` för uppladdning och kompilering.
+- API-baserad kompilering via `POST /compile`.
+- Automatisk upptäckt av `.tex`-filer i uppladdade projekt.
+- Valfri fallback-patchning av typsnittspaket i `.sty`-filer (för miljöer där `tgpagella` saknas).
+- Använder `latexmk` för robust LaTeX-byggnad i flera pass.
+- Returnerar kompileringsresultatet direkt som PDF-svar.
