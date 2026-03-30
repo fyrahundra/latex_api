@@ -156,17 +156,11 @@ def compile_zip():
             print(os.path.join(root, f))
     print("--- END FILES ---\n")
 
-    # ---- Find PDF anywhere ----
-    pdf_path = None
-    for root, _, files in os.walk(tex_dir):
-        for f in files:
-            if f.endswith(".pdf"):
-                pdf_path = os.path.join(root, f)
-                break
-        if pdf_path:
-            break
+    # ---- Return the PDF generated from the selected TEX file ----
+    expected_pdf = os.path.splitext(tex_name)[0] + ".pdf"
+    pdf_path = os.path.join(tex_dir, expected_pdf)
 
-    if not pdf_path:
+    if not os.path.exists(pdf_path):
         return (
             "Compilation failed (no PDF found)\n\n"
             f"STDOUT:\n{stdout}\n\nSTDERR:\n{stderr}"
