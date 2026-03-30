@@ -2,6 +2,7 @@ import os
 import zipfile
 import uuid
 import subprocess
+import re
 from flask import Flask, request, send_file, send_from_directory
 
 app = Flask(__name__)
@@ -58,15 +59,34 @@ def patch_optional_font_packages(work_dir: str):
             except OSError:
                 continue
 
-            old = "\\usepackage{tgpagella}"
-            if old not in content:
+            if "tgpagella" not in content:
                 continue
 
-            replacement = (
-                "% Auto-fallback for environments where tgpagella is unavailable\n"
-                "\\IfFileExists{tgpagella.sty}{\\usepackage{tgpagella}}{\\usepackage{mathpazo}}"
-            )
-            new_content = content.replace(old, replacement)
+            pattern = re.compile(r"^\s*\\usepackage(?:\[[^\]]*\])?\{[^\n{}]*tgpagella[^\n{}]*\}\s*$", re.MULTILINE)
+
+            def _replace_package_line(match):
+                line = match.group(0)
+                # Preserve any co-imported packages on the same line except tgpagella.
+                pkg_match = re.search(r"\{([^}]*)\}", line)
+                if not pkg_match:
+                    return line
+
+                packages = [p.strip() for p in pkg_match.group(1).split(",") if p.strip()]
+                other_packages = [p for p in packages if p != "tgpagella"]
+                fallback = "\\usepackage{mathpazo}"
+                if other_packages:
+                    fallback = fallback + "\n\\usepackage{" + ",".join(other_packages) + "}"
+
+                return (
+                    "% Auto-fallback for environments where tgpagella is unavailable\n"
+                    "\\IfFileExists{tgpagella.sty}{"
+                    + line.strip()
+                    + "}{"
+                    + fallback
+                    + "}"
+                )
+
+            new_content = pattern.sub(_replace_package_line, content)
             if new_content == content:
                 continue
 
